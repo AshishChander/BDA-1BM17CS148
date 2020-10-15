@@ -1,44 +1,61 @@
-> use lab4
+use lab4
 switched to db lab4
-> db.createCollection("books");
+> db.createCollection("Country")
 { "ok" : 1 }
-> db.books.save({_id:1,Category:"Machine Learning",Bookname:"ML for Hackers",Author:"Drew",qty:25,price:400,rol:30,pages:350});
-WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 1 })
-> db.books.save({_id:2,Category:"Business",Bookname:"Business Analytics",Author:"Acharya",qty:55,price:500,rol:30,pages:250});
-WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 2 })
-> db.books.save({_id:3,Category:"Analytics",Bookname:"Competing Analytics",Author:"Thomas",qty:8,price:150,rol:20,pages:150});
-WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 3 })
-> db.books.save({_id:4,Category:"Visualization",Bookname:"Visualizing Data",Author:"Ben",qty:12,price:325,rol:6,pages:450});
-WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 4 })
-> db.books.save({_id:5,Category:"Web Mining",Bookname:"Learning R",Author:"Richard",qty:20,price:850,rol:10,pages:120});
-WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 5 })
-> db.books.find({})
-{ "_id" : 1, "Category" : "Machine Learning", "Bookname" : "ML for Hackers", "Author" : "Drew", "qty" : 25, "price" : 400, "rol" : 30, "pages" : 350 }
-{ "_id" : 2, "Category" : "Business", "Bookname" : "Business Analytics", "Author" : "Acharya", "qty" : 55, "price" : 500, "rol" : 30, "pages" : 250 }
-{ "_id" : 3, "Category" : "Analytics", "Bookname" : "Competing Analytics", "Author" : "Thomas", "qty" : 8, "price" : 150, "rol" : 20, "pages" : 150 }
-{ "_id" : 4, "Category" : "Visualization", "Bookname" : "Visualizing Data", "Author" : "Ben", "qty" : 12, "price" : 325, "rol" : 6, "pages" : 450 }
-{ "_id" : 5, "Category" : "Web Mining", "Bookname" : "Learning R", "Author" : "Richard", "qty" : 20, "price" : 850, "rol" : 10, "pages" : 120 }
-> db.books.mapReduce(
-... ...     function() {
-... ...         let key = null, value = null;
-... ...         if(this.pages >= 300){
-... ...             key = "Big books";
-... ...             value = this.pages;
-... ...         }
-... ...         else{
-... ...             key = "Small books";
-... ...             value = this.pages;
-... ...         }
-... ...         emit(key, value);
-... ...     },
-... ...     function(key, values){
-... ...         return values.length;
-... ...     },
-... ...     {
-... ...         out: "Book_Records"
-... ...     }
-... ... );
-{ "result" : "Book_Records", "ok" : 1 }
-> db.Book_Records.find()
-{ "_id" : "Small books", "value" : 3 }
-{ "_id" : "Big books", "value" : 2 }
+> db.Country.insert({_id:1,Cities:["New York","Detroit"]})
+WriteResult({ "nInserted" : 1 })
+> db.Country.insert({_id:2,Cities:["Bangalore","Mumbai"]})
+WriteResult({ "nInserted" : 1 })
+> db.Country.insert({_id:3,Cities:["Toronto","Vancouver"]})
+WriteResult({ "nInserted" : 1 })
+> db.Country.insert({_id:4,Cities:["London","Manchester"]})
+WriteResult({ "nInserted" : 1 })
+> db.Country.find()
+{ "_id" : 1, "Cities" : [ "New York", "Detroit" ] }
+{ "_id" : 2, "Cities" : [ "Bangalore", "Mumbai" ] }
+{ "_id" : 3, "Cities" : [ "Toronto", "Vancouver" ] }
+{ "_id" : 4, "Cities" : [ "London", "Manchester" ] }
+> db.Country.find().limit(1)
+{ "_id" : 1, "Cities" : [ "New York", "Detroit" ] }
+> db.Country.find().skip(2).limit(2)
+{ "_id" : 3, "Cities" : [ "Toronto", "Vancouver" ] }
+{ "_id" : 4, "Cities" : [ "London", "Manchester" ] }
+> db.Country.update({_id:2},{$push:{population:{Bangalore:45,Mumbai:50}}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.Country.find()
+{ "_id" : 1, "Cities" : [ "New York", "Detroit" ] }
+{ "_id" : 2, "Cities" : [ "Bangalore", "Mumbai" ], "population" : [ { "Bangalore" : 45, "Mumbai" : 50 } ] }
+{ "_id" : 3, "Cities" : [ "Toronto", "Vancouver" ] }
+{ "_id" : 4, "Cities" : [ "London", "Manchester" ] }
+>  db.Country.update({_id:3},{$pop:{Cities:1}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.Country.find()
+{ "_id" : 1, "Cities" : [ "New York", "Detroit" ] }
+{ "_id" : 2, "Cities" : [ "Bangalore", "Mumbai" ], "population" : [ { "Bangalore" : 45, "Mumbai" : 50 } ] }
+{ "_id" : 3, "Cities" : [ "Toronto" ] }
+{ "_id" : 4, "Cities" : [ "London", "Manchester" ] }
+> db.Country.update({Cities:"London"},{$pull:{Cities:'London'}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.Country.find()
+{ "_id" : 1, "Cities" : [ "New York", "Detroit" ] }
+{ "_id" : 2, "Cities" : [ "Bangalore", "Mumbai" ], "population" : [ { "Bangalore" : 45, "Mumbai" : 50 } ] }
+{ "_id" : 3, "Cities" : [ "Toronto" ] }
+{ "_id" : 4, "Cities" : [ "Manchester" ] }
+> db.Country.update({_id:1},{$set:{'Cities.2':'Pheonix'}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.Country.find()
+{ "_id" : 1, "Cities" : [ "New York", "Detroit", "Pheonix" ] }
+{ "_id" : 2, "Cities" : [ "Bangalore", "Mumbai" ], "population" : [ { "Bangalore" : 45, "Mumbai" : 50 } ] }
+{ "_id" : 3, "Cities" : [ "Toronto" ] }
+{ "_id" : 4, "Cities" : [ "Manchester" ] }
+> db.Country.update({_id:2},{$addToSet:{Cities:"Hyderabad"}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.Country.find()
+{ "_id" : 1, "Cities" : [ "New York", "Detroit", "Pheonix" ] }
+{ "_id" : 2, "Cities" : [ "Bangalore", "Mumbai", "Hyderabad" ], "population" : [ { "Bangalore" : 45, "Mumbai" : 50 } ] }
+{ "_id" : 3, "Cities" : [ "Toronto" ] }
+{ "_id" : 4, "Cities" : [ "Manchester" ] }
+>
+
+
+
